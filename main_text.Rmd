@@ -1,3 +1,10 @@
+---
+title: "Untitled"
+author: "Elena Chechik"
+date: "6/17/2020"
+output: html_document
+---
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning=FALSE, message=FALSE)
 ```
@@ -33,23 +40,21 @@ nm1 <- nm[4:51]
 df[nm1] <- lapply(df[nm1], function(x) gsub(",", ".", x))
 df[nm1] <- lapply(df[nm1], function(x) as.numeric(gsub("[[:space:]]", "", x)))
 
-df2 <- df %>% 
+merged_final <- df %>% 
   dplyr::filter(code_010_100_totalEndYear > 0) %>% 
   replace(is.na(.), 0) %>% 
   mutate(short_name = gsub("\"", "_", agencyName),
                       short_name = gsub("^.*\\ _", "", short_name),
                       short_name = gsub("_", "", short_name))
 
-
-
 #availableMeansEndYear - Приносящая доход деятельность
 #budgetActivityEndYear - Деятельность с целевыми средствами
 #incomeActivityEndYear -Деятельность по государственному заданию
 #totalEndYear - Итого
 #<br/><br/>
-```
 
-```{r семейства}
+# CЕМЕЙСТВА
+
 finance_table_all <- read_excel("data/finance_table_all.xlsx")
 
 df <- finance_table_all
@@ -59,7 +64,7 @@ nm1 <- nm[4:51]
 df[nm1] <- lapply(df[nm1], function(x) gsub(",", ".", x))
 df[nm1] <- lapply(df[nm1], function(x) as.numeric(gsub("[[:space:]]", "", x)))
 
-df2 <- df %>% 
+merged_final <- df %>% 
   dplyr::filter(code_010_100_totalEndYear > 0) %>% 
   replace(is.na(.), 0)
 
@@ -84,8 +89,8 @@ additional_variables_coded <- additional_variables_coded %>% select(1,5,14)
 agencies_with_inn <- read_excel("data/agencies_with_inn.xlsx")
 agencies_with_inn <- agencies_with_inn %>% select(1,3,4)
 
-merged <- left_join(df2, agencies_with_inn, by = "agencyId")
-#colnames(df2)
+merged <- left_join(merged_final, agencies_with_inn, by = "agencyId")
+#colnames(merged_final)
 #colnames(agencies_with_inn)
 
 merged_final <- left_join(merged, additional_variables_coded, by = c("id_monitoring"="id"))
@@ -112,45 +117,15 @@ merged_final <- merged_final %>% mutate(family_profile2 =
 merged_final <- merged_final %>%  mutate(short_name = gsub("\"", "_", agencyName),
                       short_name = gsub("^.*\\ _", "", short_name),
                       short_name = gsub("_", "", short_name))
-```
 
-```{r регион}
+# РЕГИОН
+
 regions <- read_csv("data/regions.csv")
 regions <- regions %>% select(-1)
-merged_final_2 <- left_join(merged_final, regions, by = c("id_monitoring"="id"))
-```
 
-```{r eval=FALSE}
+merged_final <- left_join(merged_final, regions, by = c("id_monitoring"="id"))
 
-t1 <- df2 %>% mutate(inc_sh_gov = 100*(code_010_100_budgetActivityEndYear + code_010_100_incomeActivityEndYear)/code_010_100_totalEndYear,
-                 inc_sh_mark = 100*code_010_100_availableMeansEndYear/code_010_100_totalEndYear,
-                 cos_sh_gov = 100*(code_150_200_budgetActivityEndYear + code_150_200_incomeActivityEndYear)/code_150_200_totalEndYear,
-                 cos_sh_mark = 100*code_150_200_availableMeansEndYear/code_150_200_totalEndYear) %>% 
-  select(2,inc_sh_gov, inc_sh_mark, cos_sh_gov, cos_sh_mark) 
-#  mutate(inc = inc_sh_gov+inc_sh_mark,
-#         cos = cos_sh_gov+cos_sh_mark)
-
-k1 <- df2 %>% mutate(inc_sh_zad = 100*code_010_100_incomeActivityEndYear/code_010_100_totalEndYear,
-                 inc_sh_mark = 100*code_010_100_availableMeansEndYear/code_010_100_totalEndYear,
-                 inc_sh_tsel = 100*code_010_100_budgetActivityEndYear /code_010_100_totalEndYear) %>% 
-  select(2,inc_sh_zad, inc_sh_mark, inc_sh_tsel) 
-#  mutate(inc = inc_sh_gov+inc_sh_mark,
-#         cos = cos_sh_gov+cos_sh_mark)
-
-########
-#        ОШИБКА В ПЕРЕМИМЕНОВАНИИ!!!!!
-#######
-g1 <- t1
-h1 <- t1 %>% 
-  top_n(10,agencyId)
-colnames(h1)[2] <- "Приносящ. доход деятельность" 
-colnames(h1)[3] <- "Гос задан + целевые"
-colnames(h1)[4] <- "Приносящ. доход деятельность" 
-colnames(h1)[5] <- "Гос задан + целевые"
-
-knitr::kable(h1 , booktabs = T, digits = 2) %>%
- kable_styling(bootstrap_options = "striped", full_width = F) %>% 
-add_header_above(c(" " = 1, "Доходы (%)" = 2, "Расходы (%)" = 2))
+merged_final[merged_final$short_name == "ФЕДЕРАЛЬНОЕ ГОСУДАРСТВЕННОЕ АВТОНОМНОЕ ОБРАЗОВАТЕЛЬНОЕ УЧРЕЖДЕНИЕ ВЫСШЕГО ОБРАЗОВАНИЯ ПЕРВЫЙ МОСКОВСКИЙ ГОСУДАРСТВЕННЫЙ МЕДИЦИНСКИЙ УНИВЕРСИТЕТ ИМЕНИ И.М. СЕЧЕНОВА МИНИСТЕРСТВА ЗДРАВООХРАНЕНИЯ РОССИЙСКОЙ ФЕДЕРАЦИИ (СЕЧЕНОВСКИЙ УНИВЕРСИТЕТ)", "short_name"] <- "МОСКОВСКИЙ ГОСУДАРСТВЕННЫЙ МЕДИЦИНСКИЙ УНИВЕРСИТЕТ ИМЕНИ И.М. СЕЧЕНОВА"
 
 ```
 
@@ -158,7 +133,7 @@ add_header_above(c(" " = 1, "Доходы (%)" = 2, "Расходы (%)" = 2))
 
 ```{r}
 
-tt1 <- df2 %>% 
+t3 <- merged_final %>% 
   dplyr::filter(agencyId != 154506 & agencyId != 164804) %>%
   mutate(inc_sh_gov = 100*(code_010_100_budgetActivityEndYear + code_010_100_incomeActivityEndYear)/code_010_100_totalEndYear,
                  inc_sh_mark = 100*code_010_100_availableMeansEndYear/code_010_100_totalEndYear,
@@ -166,19 +141,18 @@ tt1 <- df2 %>%
                  cos_sh_mark = 100*code_150_200_availableMeansEndYear/code_150_200_totalEndYear) %>% 
   select(2,inc_sh_gov, inc_sh_mark, cos_sh_gov, cos_sh_mark) 
 
-tt2 <-   tt1 %>%  select(-1)
+t3 <-   t3 %>%  select(-1)
   
-colnames(tt2)[2] <- "Доходы от приносящ. доход деятельн." 
-colnames(tt2)[1] <- "Доходы от бюджетов всех уровней"
-colnames(tt2)[4] <- "Расходы за счет приносящ. доход деятельн." 
-colnames(tt2)[3] <- "Расходы за счет бюджетов всех уровней"
+colnames(t3)[2] <- "Доходы от приносящ. доход деятельн." 
+colnames(t3)[1] <- "Доходы от бюджетов всех уровней"
+colnames(t3)[4] <- "Расходы за счет приносящ. доход деятельн." 
+colnames(t3)[3] <- "Расходы за счет бюджетов всех уровней"
 
-J <- basicStats(tt2)
+J <- basicStats(t3)
 J <- data.frame(t(J))
 
 J <- formattable(J, digits = 2) %>% select(1:8)
 #write.csv(J, "описательные_статистики.csv", fileEncoding = "UTF-8")
-
 J
 ```
 
@@ -186,10 +160,11 @@ J
 
 ```{r}
 
-t2 <- merged_final %>% dplyr::filter(agencyId != 154506) %>% 
+r1 <- merged_final %>% dplyr::filter(agencyId != 154506) %>% 
   mutate(inc_sh_mark = 100*code_040_130_availableMeansEndYear/code_010_100_totalEndYear) %>% select(agencyId,  inc_sh_mark) %>%
 gather(key=agencyId, value=Value)  
-f <- t2 %>%   ggplot(aes(Value, fill = agencyId)) +
+
+f <- r1 %>% ggplot(aes(Value, fill = agencyId)) +
   geom_histogram(position = "identity", alpha = 0.7) +
   geom_vline(aes(xintercept = mean(Value)),col='red',size=0.6, linetype = 5)+
   labs(
@@ -198,7 +173,7 @@ f <- t2 %>%   ggplot(aes(Value, fill = agencyId)) +
     fill = NULL
   )  + theme_bw()+
   theme(legend.position = 'none' )
-f+geom_text(aes(x=42, y=40,label='mean = 33%'), size=3.5)
+f + geom_text(aes(x=42, y=40,label='mean = 33%'), size=3.5)
 
 ```
 
@@ -212,571 +187,40 @@ f+geom_text(aes(x=42, y=40,label='mean = 33%'), size=3.5)
 #  x
 #}
 
-t2 <- merged_final %>% dplyr::filter(agencyId != 154506) %>%
+t4 <- merged_final %>% dplyr::filter(agencyId != 154506) %>%
   mutate(inc_sh_mark = 100*code_040_130_availableMeansEndYear/code_010_100_totalEndYear) %>% 
   select(short_name,inc_sh_mark) %>% arrange(desc(inc_sh_mark)) #%>% top_n(10,inc_sh_mark)
   #mutate(short_name = firstup(tolower(short_name)))
 
-colnames(t2)[1] <- "Вуз" 
-colnames(t2)[2] <- "Доходы от платных услуг, %" 
+colnames(t4)[1] <- "Вуз" 
+colnames(t4)[2] <- "Доходы от платных услуг, %" 
 
 #knitr::kable(t2 , booktabs = T, digits = 2) %>%
 # kable_styling(full_width = F) #%>% 
 #  row_spec(which(t2$family_profile2 > 8), background = "#e6e6ff")
 
-f <- datatable(t2)
+f <- datatable(t4)
 formatRound(f, columns=c('Доходы от платных услуг, %'), digits=0, interval = 0,
   mark = "")
 
 ```
 
 
-```{r eval=FALSE}
-
-
-tt1 %>% 
-  mutate(agencyId = as.character(agencyId)) %>% 
-  dplyr::filter(agencyId!= 154506) %>%
-  dplyr::select(agencyId, 2, 3) %>%   
-gather(key=Type, value=Value, inc_sh_gov,inc_sh_mark) %>% 
-  ggplot(aes(Value, agencyId, fill = Type)) +
-  geom_col(position = position_stack(reverse = TRUE)) +
-  theme(axis.text.y=element_blank(),
-        axis.ticks.y=element_blank()) +
-  ggtitle("Структура доходов по источникам финансирования \n (в 392 российских университетах)") +
-  ylab("Университеты (n=392)") + xlab("Доля доходов по источникам финансирования (%)")
-
-
-```
-
-```{r eval=FALSE}
-
-tt3 <- tt1
-colnames(tt3)[3] <- "Доходы от приносящ. доход деятельн." 
-colnames(tt3)[2] <- "Доходы от бюджетов всех уровней"
-tt3 %>% 
-  dplyr::filter(agencyId!= 154506) %>% 
-  dplyr::select(agencyId, 2, 3) %>% 
-  gather(key=agencyId, value=Value) %>% 
-  ggplot(aes(Value, fill = agencyId)) +
-  geom_histogram(position = "identity", alpha = 0.7) +
-  labs(
-    x = "% от общих доходов",
-    y = "Кол-во вузов",
-    fill = NULL
-  )
-```
-
-```{r eval=FALSE}
-
-# ПОМНИ О СТРОЧКИ     dplyr::filter(agencyId> 19506) %>% которая только для красоты графика
-
-r1 <- t1 %>% 
-  #mutate(agencyId = as.character(agencyId)) %>% 
-  dplyr::filter(agencyId!= 154506) %>%
-    dplyr::filter(agencyId> 19506) %>% ## убрать
-  dplyr::select(agencyId, 2, 3)
-r1$agencyId <- factor(r1$agencyId, levels = r1$agencyId[order(r1$inc_sh_gov)])  
-r1 %>%   
-gather(key=Type, value=Value, inc_sh_gov,inc_sh_mark) %>% 
-  ggplot(aes(Value, agencyId, fill = Type)) +
-  geom_col(position = position_stack(reverse = TRUE)) +
-  theme(axis.text.y=element_blank(),
-        axis.ticks.y=element_blank()) +
-  ggtitle("Структура доходов по источникам финансирования \n (в 392 российских университетах)") +
-  ylab("Университеты (n=392)") + xlab("Доля доходов по источникам финансирования (%)")
-
-```
-
-```{r eval=FALSE}
-
-# ПОМНИ О СТРОЧКИ      dplyr::filter(agencyId> 2506) %>% %>% которая только для красоты графика
-
-r1 <- k1 %>% 
-  #mutate(agencyId = as.character(agencyId)) %>% 
-  dplyr::filter(inc_sh_zad > 0) %>% 
-  dplyr::filter(agencyId> 2506) %>% ## убрать
-  dplyr::select(agencyId, 2, 3,4)
-r1$agencyId <- factor(r1$agencyId, levels = r1$agencyId[order(r1$inc_sh_mark)])  
-r1 %>%   
-gather(key=Type, value=Value, inc_sh_zad, inc_sh_tsel, inc_sh_mark) %>% 
-  ggplot(aes(Value, agencyId, fill = Type)) +
-  geom_col(position = position_stack(reverse = TRUE)) +
-  theme(axis.text.y=element_blank(),
-        axis.ticks.y=element_blank()) +
-  ggtitle("Структура доходов по источникам финансирования \n (в 392 российских университетах)") +
-  ylab("Университеты (n=392)") + xlab("Доля доходов по источникам финансирования (%)")
-
-```
-
-```{r eval=FALSE}
-g1 <- formattable(g1)
-as.datatable(g1)
-```
-
-```{r eval=FALSE}
-options(scipen = 999)
-t2 <- df2 %>% mutate(inc_sh_mark = 100*code_040_130_totalEndYear/code_010_100_totalEndYear,
-                     inc_sh_prochee = 100*code_100_180_totalEndYear/code_010_100_totalEndYear,
-                     inc_sh_drugoe = 100*(code_010_100_totalEndYear - code_040_130_totalEndYear - code_100_180_totalEndYear)/code_010_100_totalEndYear) %>% 
-  select(2,inc_sh_mark, inc_sh_prochee, inc_sh_drugoe) %>% 
-  mutate(inc = inc_sh_mark+inc_sh_prochee+inc_sh_drugoe)
-
-t2 <- formattable(t2)
-as.datatable(t2)
-
-```
-
-```{r eval=FALSE}
-t2 %>% 
-  dplyr::filter(inc_sh_drugoe > -100 & inc_sh_drugoe < 100) %>% 
-  dplyr::select(agencyId, 2, 3,4) %>% 
-  gather(key=agencyId, value=Value) %>% 
-  ggplot(aes(Value, fill = agencyId)) +
-  geom_histogram(position = "identity", alpha = 0.7) +
-  labs(
-    x = "Доля доходов по нашим трем типам (%) ",
-    y = "Число вузов",
-    fill = NULL
-  )
-```
-
-```{r eval=FALSE}
-r1 <- t2 %>% 
-  #dplyr::filter(agencyId!= 154506) %>% 
-  #mutate(agencyId = as.character(agencyId)) %>% 
-  dplyr::filter(inc_sh_drugoe > -250 & inc_sh_drugoe < 250) %>% 
-  dplyr::select(agencyId, 2, 3,4)
-r1$agencyId <- factor(r1$agencyId, levels = r1$agencyId[order(r1$inc_sh_drugoe)])  
-r1 %>%   
-gather(key=Type, value=Value, inc_sh_mark,inc_sh_prochee,inc_sh_drugoe) %>% 
-  ggplot(aes(Value, agencyId, fill = Type)) +
-  geom_col(position = position_stack(reverse = TRUE)) +
-  theme(axis.text.y=element_blank(),
-        axis.ticks.y=element_blank()) +
-  ggtitle("Структура доходов по источникам финансирования \n (в 392 российских университетах)") +
-  ylab("Университеты (n=392)") + xlab("Доля доходов по источникам финансирования (%)")
-
-```
-
-```{r eval=FALSE}
-
-v1 <- df2 %>% select(2,44,48, 4)
-colnames(v1)
-options(scipen = 999)
-v2 <- v1 %>% mutate(diff =  100*code_040_130_availableMeansEndYear/ code_010_100_availableMeansEndYear)
-v2a <- v1 %>% mutate(diff =  code_010_100_availableMeansEndYear- code_040_130_availableMeansEndYear - code_100_180_availableMeansEndYear )
-summary(v2)
-v1 <- formattable(v1)
-as.datatable(v1)
-
-v2 <- formattable(v2)
-as.datatable(v2)
-
-v2a <- formattable(v2a)
-as.datatable(v2a)
-
-v2 %>% select(diff) %>% filter(diff < 150) %>% 
-  gather(key=agencyId, value=Value) %>% 
-  ggplot(aes(Value, fill = agencyId)) +
-  geom_histogram(position = "identity", alpha = 0.7) +
-  labs(
-    x = "Доля строки 040_130_приносящ_дох_деят(в %)",
-    y = "Число вузов", 
-    fill = NULL
-  )
-
-```
-
-```{r eval=FALSE}
-options(digits = 4)
-t3 <- df2 %>% mutate(inc_sh_mark = 100*code_040_130_availableMeansEndYear/code_040_130_totalEndYear,
-                     inc_sh_gov = 100*code_040_130_incomeActivityEndYear/code_040_130_totalEndYear) %>% 
-  select(2,inc_sh_mark, inc_sh_gov) %>% 
-  mutate(inc = inc_sh_mark+inc_sh_gov)
-
-t3 <- formattable(t3)
-as.datatable(t3)
-
-```
-
-```{r eval=FALSE}
-t3 %>% 
-  select(agencyId, inc_sh_gov, inc_sh_mark) %>% 
-  gather(key=agencyId, value=Value) %>% 
-  ggplot(aes(Value, fill = agencyId)) +
-  geom_density(position = "identity", alpha = 0.7) +
-  labs(
-    x = "Margin of victory",
-    y = "Number of teams",
-    fill = NULL
-  )
-```
-
-```{r eval=FALSE}
-t3 %>% 
-  select(agencyId, inc_sh_gov, inc_sh_mark) %>% 
-  gather(key=agencyId, value=Value) %>% 
-  ggplot(aes(Value, fill = agencyId)) +
-  geom_histogram(position = "identity", alpha = 0.7) +
-  labs(
-    x = "Строка 040_130 по источникам финансирования (в %)",
-    y = "Число вузов", 
-    fill = NULL
-  )
-```
-
-```{r eval=FALSE}
-
-# ПОМНИ О СТРОЧКИ      dplyr::filter(agencyId> 2506) %>% %>% которая только для красоты графика
-
-
-r1 <- t3 %>% 
-  dplyr::filter(agencyId > 20506) %>% # убери
-  #dplyr::filter(agencyId!= 154506) %>% 
-  #mutate(agencyId = as.character(agencyId)) %>% 
-  #dplyr::filter(inc_sh_drugoe > -100 & inc_sh_drugoe < 100) %>% 
-  dplyr::select(agencyId, 2, 3)
-r1$agencyId <- factor(r1$agencyId, levels = r1$agencyId[order(r1$inc_sh_gov)])  
-r1 %>%   
-gather(key=Type, value=Value, inc_sh_gov,inc_sh_mark) %>% 
-  ggplot(aes(Value, agencyId, fill = Type)) +
-  geom_col(position = position_stack(reverse = TRUE)) +
-  theme(axis.text.y=element_blank(),
-        axis.ticks.y=element_blank()) +
-  ggtitle("Структура доходов по источникам финансирования \n (в 392 российских университетах)") +
-  ylab("Университеты (n=392)") + xlab("Доля доходов по источникам финансирования (%)")
-
-```
-
-```{r eval=FALSE}
-options(digits = 2)
-t5 <- df2 %>% mutate(cos_sh_wage = 100*code_160_210_totalEndYear/code_150_200_totalEndYear,
-                     cos_sh_rab_usl = 100*code_170_220_totalEndYear/code_150_200_totalEndYear,
-                     cos_sh_ostalnoe =  100*(code_190_230_totalEndYear+code_210_240_totalEndYear+code_230_250_totalEndYear++code_240_260_totalEndYear)/code_150_200_totalEndYear,
-                     cos_sh_prochee = 100*code_250_290_totalEndYear/code_150_200_totalEndYear,
-                     cos_sh_activ = 100*code_260_270_totalEndYear/code_150_200_totalEndYear) %>% 
-  select(2,cos_sh_wage, cos_sh_rab_usl,cos_sh_activ,cos_sh_prochee,cos_sh_ostalnoe) %>% 
-  mutate(inc = cos_sh_wage+ cos_sh_rab_usl+cos_sh_activ+cos_sh_prochee+cos_sh_ostalnoe) %>% 
-  arrange(desc(cos_sh_ostalnoe)) %>% dplyr::filter(agencyId != 154506 & agencyId != 164804)
-
-
-t5 <- formattable(t5)
-as.datatable(t5)
-
-```
-
-```{r eval=FALSE}
-J <- basicStats(t5)
-J <- data.frame(t(J))
-
-J <- formattable(J, digits = 9) %>% select(1:8)
-J
-```
-
-```{r eval=FALSE}
-options(digits = 2)
-t5a <- df2 %>% mutate(cos_sh_wage = 100*code_160_210_availableMeansEndYear/code_150_200_availableMeansEndYear,
-                     cos_sh_All_ex_w = 100*(code_170_220_availableMeansEndYear+code_190_230_availableMeansEndYear+code_210_240_availableMeansEndYear+code_230_250_availableMeansEndYear+code_240_260_availableMeansEndYear+code_250_290_availableMeansEndYear+code_260_270_availableMeansEndYear)/code_150_200_availableMeansEndYear,
-                      
-                      cos_sh_rab_usl = 100*code_170_220_availableMeansEndYear/code_150_200_availableMeansEndYear,
-                     cos_sh_ostalnoe =  100*(code_190_230_availableMeansEndYear+code_210_240_availableMeansEndYear+code_230_250_availableMeansEndYear+code_240_260_availableMeansEndYear)/code_150_200_availableMeansEndYear,
-                     cos_sh_prochee = 100*code_250_290_availableMeansEndYear/code_150_200_availableMeansEndYear,
-                     cos_sh_activ = 100*code_260_270_availableMeansEndYear/code_150_200_availableMeansEndYear) %>% 
-  select(2,cos_sh_wage, cos_sh_All_ex_w, cos_sh_rab_usl,cos_sh_activ,cos_sh_prochee,cos_sh_ostalnoe) %>% 
-  mutate(inc = cos_sh_wage+ cos_sh_rab_usl+cos_sh_activ+cos_sh_prochee+cos_sh_ostalnoe,
-         inc2 = cos_sh_wage+ cos_sh_All_ex_w) %>% 
-  arrange(desc(cos_sh_ostalnoe)) %>% dplyr::filter(agencyId != 154506 & agencyId != 164804)
-
-
-t5a <- formattable(t5a)
-as.datatable(t5a)
-
-```
-
-```{r eval=FALSE}
-
-J <- basicStats(t5a)
-J <- data.frame(t(J))
-
-J <- formattable(J, digits = 9) %>% select(1:8)
-J
-```
-
-```{r eval=FALSE}
-t5 %>% 
-  dplyr::filter(cos_sh_prochee > 0) %>% 
-  select(agencyId,cos_sh_wage, cos_sh_rab_usl,cos_sh_activ,cos_sh_prochee,cos_sh_ostalnoe) %>% 
-  gather(key=agencyId, value=Value, cos_sh_wage, cos_sh_rab_usl,cos_sh_activ,cos_sh_prochee,cos_sh_ostalnoe) %>% 
-  ggplot(aes(Value, fill = agencyId)) +
-  geom_histogram(position = "identity", alpha = 0.7) +
-  labs(
-    x = "Доли наших пяти типов расходов (в %)",
-    y = "Число вузов", 
-    fill = NULL
-  )
-```
-
-```{r eval=FALSE}
-r1 <- t5 %>% 
-  dplyr::filter(cos_sh_prochee > 0) %>% 
-  #mutate(agencyId = as.character(agencyId)) %>% 
-  #dplyr::filter(inc_sh_drugoe > -100 & inc_sh_drugoe < 100) %>% 
-  dplyr::select(agencyId,cos_sh_wage, cos_sh_rab_usl,cos_sh_activ,cos_sh_prochee,cos_sh_ostalnoe)
-r1$agencyId <- factor(r1$agencyId, levels = r1$agencyId[order(r1$cos_sh_rab_usl)])  
-r1 %>%   
-gather(key=Type, value=Value, cos_sh_rab_usl,cos_sh_activ,cos_sh_prochee,cos_sh_ostalnoe,cos_sh_wage) %>% 
-  ggplot(aes(Value, agencyId, fill = Type)) +
-  geom_col(position = position_stack(reverse = TRUE)) +
-  theme(axis.text.y=element_blank(),
-        axis.ticks.y=element_blank()) +
-  ggtitle("Структура расходов \n (в 392 российских университетах)") +
-  ylab("Университеты (n=392)") + xlab("Доля расходов пяти типов (%)")
-
-```
-
-```{r eval=FALSE}
-r1 <- t5 %>% 
-  dplyr::filter(cos_sh_prochee > 0) %>% 
-  #mutate(agencyId = as.character(agencyId)) %>% 
-  #dplyr::filter(inc_sh_drugoe > -100 & inc_sh_drugoe < 100) %>% 
-  dplyr::select(agencyId,cos_sh_wage, cos_sh_rab_usl,cos_sh_activ,cos_sh_prochee,cos_sh_ostalnoe)
-r1$agencyId <- factor(r1$agencyId, levels = r1$agencyId[order(r1$cos_sh_wage)])  
-r1 %>%   
-gather(key=Type, value=Value, cos_sh_rab_usl,cos_sh_activ,cos_sh_prochee,cos_sh_ostalnoe,cos_sh_wage) %>% 
-  ggplot(aes(Value, agencyId, fill = Type)) +
-  geom_col(position = position_stack(reverse = TRUE)) +
-  theme(axis.text.y=element_blank(),
-        axis.ticks.y=element_blank()) +
-  ggtitle("Структура расходов \n (в 392 российских университетах)") +
-  ylab("Университеты (n=392)") + xlab("Доля расходов пяти типов (%)")
-
-```
-
-```{r eval=FALSE}
-options(digits = 2)
-t6 <- df2 %>% mutate(
-  w_g = 100*(code_160_210_budgetActivityEndYear +code_160_210_incomeActivityEndYear)/code_160_210_totalEndYear,
-  w_m = 100*code_160_210_availableMeansEndYear/code_160_210_totalEndYear,
-  ru_g = 100*(code_170_220_budgetActivityEndYear +code_160_210_incomeActivityEndYear)/code_160_210_totalEndYear,
-  ru_m = 100*code_170_220_availableMeansEndYear/code_170_220_totalEndYear,
-  os_g = 100*(code_190_230_budgetActivityEndYear +code_190_230_incomeActivityEndYear)/code_190_230_totalEndYear,
-  os_m = 100*code_190_230_availableMeansEndYear/code_190_230_totalEndYear,
-  pro_g = 100*(code_250_290_budgetActivityEndYear +code_250_290_incomeActivityEndYear)/code_250_290_totalEndYear,
-  pro_m = 100*code_250_290_availableMeansEndYear/code_250_290_totalEndYear,
-  a_g = 100*(code_260_270_budgetActivityEndYear +code_260_270_incomeActivityEndYear)/code_260_270_totalEndYear,
-  a_m = 100*code_260_270_availableMeansEndYear/code_260_270_totalEndYear) %>% 
-  
-  select(2,w_g, w_m,ru_g,ru_m,os_g, os_m, pro_g, pro_m, a_g, a_m) #%>% 
-  #mutate(inc = cos_sh_wage+ cos_sh_rab_usl+cos_sh_activ+cos_sh_prochee+cos_sh_ostalnoe) %>% 
-  #arrange(desc(cos_sh_ostalnoe))
-
-t6 <- formattable(t6)
-as.datatable(t6)
-
-```
-
-```{r eval=FALSE}
-
-t3_1 <- merged_final %>% mutate(cos_sh_wage = 100*code_160_210_totalEndYear/code_150_200_totalEndYear,
-  inc_sh_mark = 100*code_040_130_availableMeansEndYear/code_040_130_totalEndYear,
-                     inc_sh_gov = 100*code_040_130_incomeActivityEndYear/code_040_130_totalEndYear)  %>% 
- select(2,inc_sh_mark, inc_sh_gov, family_profile2,cos_sh_wage, family_profile) 
-
-st <- summary(t3_1$inc_sh_mark) 
-#str(st)
-#st[5]
-#st[[2]]
-t3_1 <- t3_1 %>% 
-  mutate(group_inc_sh_mark = case_when(inc_sh_mark < st[[2]] ~ 1, 
-                                       inc_sh_mark >= st[[2]] & inc_sh_mark < st[[3]] ~ 2,
-                                       inc_sh_mark >= st[[3]] & inc_sh_mark < st[[5]] ~ 3,
-                                       TRUE   ~  4
-                                       ))
-
-
-
-t3_1 %>% 
-  ggplot(aes(group_inc_sh_mark, cos_sh_wage, colour = family_profile))+
-  geom_jitter() +
-  theme_bw()
-```
-
-```{r eval=FALSE}
-
-t3_1_or <- t3_1 %>% group_by(family_profile) %>%  mutate(family_profile_or = n())
-t3_1_or %>% 
-  ggplot(aes(x=reorder(family_profile, family_profile_or), fill = family_profile)) + geom_bar(stat = "count") + coord_flip() + 
-  theme_bw() +
-  theme(legend.position = 'none',
-        axis.title.y = element_blank()) 
-
-```
-
-```{r eval=FALSE}
-p1 <- t3_1 %>% plot_ly() %>% 
-  add_trace(x = ~jitter(as.numeric(group_inc_sh_mark)), 
-            y = ~cos_sh_wage, 
-            color = ~family_profile, 
-            type = 'scattergl',
-           # mode = 'lines+markers',
-           legendgroup = ~family_profile,
-           showlegend = FALSE
-            ) %>% 
-  layout(
-    title = 'Example plot',
-    xaxis = list(title = 'Квантили доходов от принос. дох. деятельн.', autotick = F, dtick = 1), 
-    yaxis = list(title = 'Доля расходов на з/п')
-    )
-p1
-```
-
-```{r eval=FALSE}
-fig <- plot_ly(t3_1, x = ~group_inc_sh_mark, 
-               y = ~cos_sh_wage, 
-               color = ~family_profile, 
-               type = "box", 
-               legendgroup = ~family_profile,
-            showlegend=TRUE
-               )
-
-fig <- fig %>% layout(boxmode = "group")   %>% layout(
-    xaxis = list(title = 'Квантили доходов от принос. дох. деятельн.', autotick = F, dtick = 1), 
-    yaxis = list(title = 'Доля расходов на з/п')
-    )
-fig
-```
-
-```{r eval=FALSE}
-subplot(p1, fig, nrows = 2, shareX = TRUE) 
-```
-
-```{r eval=FALSE}
-t3_1 <- merged_final %>% mutate(cos_sh_wage = 100*code_160_210_totalEndYear/code_150_200_totalEndYear,
-  inc_sh_mark = 100*code_040_130_availableMeansEndYear/code_040_130_totalEndYear,
-                     inc_sh_gov = 100*code_040_130_incomeActivityEndYear/code_040_130_totalEndYear)  %>% 
- select(2,inc_sh_mark, inc_sh_gov, family_profile2,cos_sh_wage, family_profile) 
-
-t3_2 <- t3_1 %>% 
-  mutate(group_inc_sh_mark = ntile(inc_sh_mark, 10))
-
-t3_2 <- formattable(t3_2)
-as.datatable(t3_2)
-
-```
-
-```{r eval=FALSE}
-p2 <- t3_2 %>% plot_ly() %>% 
-  add_trace(x = ~jitter(as.numeric(group_inc_sh_mark)), 
-            y = ~cos_sh_wage, 
-            color = ~family_profile, 
-            type = 'scattergl'
-            ) %>% 
-  layout(
-    xaxis = list(title = 'Квантили доходов (НЕ ГОС)'), 
-    yaxis = list(title = 'Доля расходов на з/п')
-    )
-p2
-```
-
-```{r eval=FALSE}
-df <- data.frame(displ = mean(t3_2$inc_sh_mark), cty = mean(t3_2$cos_sh_wage, na.rm = TRUE))
-t3_p <- t3_2 %>% 
-  ggplot(aes(inc_sh_mark, cos_sh_wage, colour = family_profile))+
-  geom_jitter() + 
-# facet_wrap(~family_profile, labeller = label_wrap_gen(width=15), nrow = 2) +
-  facet_wrap(~family_profile, nrow = 3) +
-  theme_bw() +
-    theme(legend.position = 'none',
-        strip.text.x = element_text(size = 8),
-        axis.title.y = element_blank(),
-        axis.text.x = element_text(size = 7),
-        axis.text.y = element_text(size = 7)) +
-  scale_x_continuous(breaks = seq(0, 100, by = 50))
-t3_p  + geom_point(x = 41, y = 62, colour = "red", size = 2)
-
-```
-
-```{r eval=FALSE}
-t3_3 <- t3_1 %>% 
-  mutate(group_inc_sh_mark = ntile(inc_sh_mark, 10)) %>% 
-  filter(group_inc_sh_mark == 1 | group_inc_sh_mark == 10)
-t3_3 %>% 
-  ggplot(aes(inc_sh_mark, cos_sh_wage, colour = family_profile))+
-  geom_jitter() + 
-# facet_wrap(~family_profile, labeller = label_wrap_gen(width=15), nrow = 2) +
-  facet_wrap(~family_profile, nrow = 3) +
-  theme_bw() +
-    theme(legend.position = 'none',
-        strip.text.x = element_text(size = 8),
-        axis.title.y = element_blank()) +
-  geom_point(x = 41, y = 62, colour = "red", size = 2)
-
-
-```
-
-```{r eval=FALSE}
-
-p1 <- ggplot(t3_1_or) + geom_boxplot(aes(x = cos_sh_wage,
-                                         y = family_profile, 
-                                         fill = family_profile)) +
-  theme(axis.title.y=element_blank())
-p2 <- ggplot(t3_1_or) + geom_bar(aes(y = family_profile, 
-                                    fill = family_profile)) +
-  theme(axis.text.y=element_blank(),
-        axis.ticks.y=element_blank(),
-        axis.title.y=element_blank())
-p3 <- ggplot(t3_1_or) + geom_point(aes(x = inc_sh_mark,
-                                      y = cos_sh_wage,
-                                      colour = family_profile))
-
-p_all <- (p1 | p2) / p3
-
-p_all & theme(legend.position = 'none' ) &   plot_annotation(title = 'Mammalian', tag_levels = 'A' )
-```
-
-```{r eval=FALSE}
-d3 <- t3_1 %>%
-mutate(group_inc_sh_mark = as.factor(ntile(inc_sh_mark, 10)))
-
-ggplot(d3, aes(x = group_inc_sh_mark, y = cos_sh_wage)) + 
-  geom_boxplot(fill = c("red","grey", "grey","grey","grey","grey","grey","grey","grey","grey"),
-               color="black",
-               width=.6, 
-               outlier.shape = 1, 
-               outlier.size = 2, ) + 
-  geom_jitter(width=0.2, size = 1.1, alpha = 0.6, shape = 19) +
-  stat_summary(fun.y=median, geom="smooth", aes(group=1)) +
-  theme_bw()
-```
-
-```{r eval=FALSE}
-options(scipen = 999)
-t2 <- merged_final %>% mutate(inc_sh_mark = 100*code_040_130_availableMeansEndYear/code_010_100_totalEndYear) %>% 
-  select(agencyId, short_name,inc_sh_mark, family_profile)
-
-t2 <- formattable(t2)
-
-as.datatable(t2)
-
-```
-
 #### Таблица 4а. Топ-10 вузов по доходам от услуг населению и фирмам (в рублях) с указанием какую долю составляют эти доходы от общих {-}
 
 ```{r}
-t2 <- merged_final %>% 
-  mutate(budg = (code_040_130_incomeActivityEndYear + code_040_130_budgetActivityEndYear)/1000000,
-         sh_mark_tot = 100*code_040_130_availableMeansEndYear/code_010_100_totalEndYear,
-         tot = code_010_100_totalEndYear/1000000,
-         code_040_130_availableMeansEndYear = code_040_130_availableMeansEndYear/1000000) %>% 
-  select(short_name, code_040_130_availableMeansEndYear, sh_mark_tot) %>% arrange(desc(code_040_130_availableMeansEndYear))
+t4a <- merged_final %>% 
+  mutate(
+    budg = (code_040_130_incomeActivityEndYear + code_040_130_budgetActivityEndYear)/1000000,
+    sh_mark_tot = 100*code_040_130_availableMeansEndYear/code_010_100_totalEndYear,
+    tot = code_010_100_totalEndYear/1000000,
+    code_040_130_availableMeansEndYear = code_040_130_availableMeansEndYear/1000000) %>% 
+  select(short_name, code_040_130_availableMeansEndYear, sh_mark_tot) %>%
+  arrange(desc(code_040_130_availableMeansEndYear))
 
-colnames(t2)[1] <- "Вуз" 
-colnames(t2)[2] <- "млн руб" 
-colnames(t2)[3] <- "% от общих доходов" 
-
-t2[t2$Вуз== "ФЕДЕРАЛЬНОЕ ГОСУДАРСТВЕННОЕ АВТОНОМНОЕ ОБРАЗОВАТЕЛЬНОЕ УЧРЕЖДЕНИЕ ВЫСШЕГО ОБРАЗОВАНИЯ ПЕРВЫЙ МОСКОВСКИЙ ГОСУДАРСТВЕННЫЙ МЕДИЦИНСКИЙ УНИВЕРСИТЕТ ИМЕНИ И.М. СЕЧЕНОВА МИНИСТЕРСТВА ЗДРАВООХРАНЕНИЯ РОССИЙСКОЙ ФЕДЕРАЦИИ (СЕЧЕНОВСКИЙ УНИВЕРСИТЕТ)", "Вуз"] <- "МОСКОВСКИЙ ГОСУДАРСТВЕННЫЙ МЕДИЦИНСКИЙ УНИВЕРСИТЕТ ИМЕНИ И.М. СЕЧЕНОВА"
-
+colnames(t4a)[1] <- "Вуз" 
+colnames(t4a)[2] <- "млн руб" 
+colnames(t4a)[3] <- "% от общих доходов" 
 
 sketch = htmltools::withTags(table(
   class = 'display',
@@ -791,11 +235,9 @@ sketch = htmltools::withTags(table(
   )
 ))
 
-f <- datatable(t2, container = sketch, rownames = FALSE)
+f <- datatable(t4a, container = sketch, rownames = FALSE)
 formatRound(f, columns=c('млн руб', '% от общих доходов'), digits=0, interval = 0,
   mark = "")
-
-
 
 #knitr::kable(t2 , booktabs = T, digits = 1) %>%
 #column_spec(1, bold = T) %>%
@@ -803,29 +245,22 @@ formatRound(f, columns=c('млн руб', '% от общих доходов'), d
 #  add_header_above(c(" ","Доходы от услуг населению и фирмам" = 2))
 ```
 
+#### Рис. 1а. Связь доли доходов от платных услуг с абсолютным их выражением в рублях {-}
+
 ```{r}
-options(scipen = 999)
-t2 <- merged_final %>% 
+r1a <- merged_final %>% 
   mutate(budg = code_040_130_incomeActivityEndYear + code_040_130_budgetActivityEndYear,
          sh_mark_tot = 100*code_040_130_availableMeansEndYear/code_010_100_totalEndYear,
          tot = code_010_100_totalEndYear) %>% 
   select(short_name, code_040_130_availableMeansEndYear, budg, sh_mark_tot, tot, agencyId, family_profile)
 
-colnames(t2)[1] <- "univ" 
-colnames(t2)[2] <- "mark" 
+colnames(r1a)[1] <- "univ" 
+colnames(r1a)[2] <- "mark" 
 
 #t2 <- formattable(t2)
 #as.datatable(t2)
 
-
-
-```
-
-#### Рис. 1а. Связь доли доходов от платных услуг с абсолютным их выражением в рублях {-}
-
-```{r}
-
-t2 %>% dplyr::filter(agencyId != 154506) %>% 
+r1a %>% dplyr::filter(agencyId != 154506) %>% 
 ggplot(aes(sh_mark_tot, mark)) + geom_point() +
  scale_y_continuous(trans='log10') +
  geom_smooth(method = "lm", se = FALSE) +
@@ -835,14 +270,13 @@ ggplot(aes(sh_mark_tot, mark)) + geom_point() +
     fill = NULL)  + 
   theme_bw()+
   theme(legend.position = 'none' )
-
 ```
 
 #### Рис. 1г. Связь доли доходов от платных услуг и доходов от бюджетов всех уровней (в рублях) по группам регионов {-}
 
 ```{r}
-options(scipen = 999)
-t2 <- merged_final_2 %>% 
+
+r1g <- merged_final %>% 
   mutate(budg = code_040_130_incomeActivityEndYear + code_040_130_budgetActivityEndYear,
          budg_good =  code_010_100_incomeActivityEndYear + code_010_100_budgetActivityEndYear,
          sh_mark_tot = 100*code_040_130_availableMeansEndYear/code_010_100_totalEndYear,
@@ -851,11 +285,10 @@ t2 <- merged_final_2 %>%
                                          TRUE   ~  "Региональные")) %>% 
   select(short_name, code_040_130_availableMeansEndYear, sh_mark_tot, region_2017,capital,budg_good, family_profile, agencyId)
 
-colnames(t2)[1] <- "univ" 
-colnames(t2)[2] <- "mark" 
+colnames(r1g)[1] <- "univ" 
+colnames(r1g)[2] <- "mark" 
 
-
-t2 %>% dplyr::filter(agencyId != 154506) %>% 
+r1g %>% dplyr::filter(agencyId != 154506) %>% 
 ggplot(aes(sh_mark_tot, budg_good, colour = capital)) + geom_point(size = 2) +
 scale_y_continuous(trans='log10') +
 geom_smooth(method = "lm", se = FALSE, size = 0.7) +
@@ -869,152 +302,18 @@ geom_smooth(method = "lm", se = FALSE, size = 0.7) +
 
 ```
 
-```{r eval=FALSE}
-
-t2 %>% dplyr::filter(agencyId != 154506) %>% 
-ggplot(aes(sh_mark_tot, budg)) + geom_point() +
-#  scale_y_continuous(trans='log10') +
- geom_smooth(method = "lm", se = FALSE) +
-  labs(
-    y = "Доход от бюджетов всех уровней в рублях (логарифм)",
-    x = "Доходы от платных услуг в % от общих доходов вуза", 
-    fill = NULL)  + 
-  theme_bw()+
-  theme(legend.position = 'none' )
-
-```
-
-```{r eval=FALSE}
-
-t2 %>% dplyr::filter(agencyId != 154506) %>% 
-ggplot(aes(sh_mark_tot, tot)) + geom_point() +
-  scale_y_continuous(trans='log10') +
- geom_smooth(method = "lm", se = FALSE) +
-  labs(
-    y = "Общие доходы в рублях (логарифм)",
-    x = "Доходы от платных услуг в % от общих доходов вуза", 
-    fill = NULL)  + 
-  theme_bw()+
-  theme(legend.position = 'none' )
-
-```
-
-```{r eval=FALSE}
-
-t2 %>% dplyr::filter(agencyId != 154506) %>% # dplyr::filter(mark < 5000000000) %>% 
-ggplot(aes(sh_mark_tot, tot, colour = family_profile)) + geom_point() +
-  #scale_y_continuous(trans='log10') +
-  facet_wrap(~family_profile, nrow = 3) +
- geom_smooth(method = "lm", se = FALSE, color = "black", size=0.3) +
-                        
-  labs(
-    y = "Общие доходы в рублях (логарифм)",
-    x = "Доходы от платных услуг в % от общих доходов вуза", 
-    fill = NULL)  + 
-  theme_bw()+
-  theme(legend.position = 'none' )
-
-```
-
-```{r eval=FALSE}
-
-t2 %>% dplyr::filter(agencyId != 154506) %>%  top_n(25, tot) %>% 
-ggplot(aes(sh_mark_tot, tot, colour = family_profile)) + geom_point() +
-  #scale_y_continuous(trans='log10') +
-  facet_wrap(~family_profile, nrow = 3) +
- geom_smooth(method = "lm", se = FALSE, color = "black", size=0.3) +
-                        
-  labs(
-    y = "Общие доходы в рублях (логарифм)",
-    x = "Доходы от платных услуг в % от общих доходов вуза", 
-    fill = NULL)  + 
-  theme_bw()+
-  theme(legend.position = 'none' )
-
-```
-
-```{r eval=FALSE}
-t2 %>% dplyr::filter(agencyId != 154506) %>% summarise(mean_sh_mark_tot = mean(sh_mark_tot),
-                 med_sh_mark_tot = median(sh_mark_tot),
-                 mean_mark = mean(mark),
-                 med_mark = median(mark))
-```
-
-```{r eval=FALSE}
-
-t2 %>% dplyr::filter(agencyId != 154506) %>% # dplyr::filter(mark < 5000000000) %>% 
-ggplot(aes(sh_mark_tot, mark, colour = family_profile)) + geom_point() +
- scale_y_continuous(trans='log10') +
-  facet_wrap(~family_profile, nrow = 3) +
- geom_smooth(method = "lm", se = FALSE, color = "black", size=0.3) +
-  labs(
-    y = "Доход от платных услуг в рублях (логарифм)",
-    x = "Доходы от платных услуг в % от общих доходов вуза", 
-    fill = NULL)  + 
-  theme_bw()+
-  theme(legend.position = 'none' ) + geom_point(x = 33, y = log10(565047670), colour = "red", size = 2) #+ geom_point(x = 31, y = log10(269949355), colour = "blue", size = 2)
-
-```
-
-```{r eval=FALSE}
-
-t3 <- t2 %>%
-  gather(key=agencyId, value=Value, family_profile) 
-t3 %>% 
-  ggplot(aes(mark, fill = Value)) +
-  geom_histogram(position = "identity", alpha = 0.7) +
-  facet_wrap(~Value, nrow = 3)  +
-  labs(
-    x = "Доходы от платных услуг (в % от общих доходов вуза)",
-    y = "Кол-во вузов",
-    fill = NULL
-  ) +
-  theme_bw() +
-  theme(legend.position = 'none' )
-
-t3 %>% 
-  ggplot(aes(mark)) +
-  geom_histogram(position = "identity", alpha = 0.7)
-
-```
-
-```{r eval=FALSE}
-options(scipen = 999)
-t2 <- merged_final %>% #dplyr::filter(agencyId != 154506) %>% 
-  mutate(inc_sh_mark = 100*code_040_130_availableMeansEndYear/code_010_100_totalEndYear) %>% 
-  select(short_name,inc_sh_mark, family_profile) %>% group_by(family_profile) %>% summarise(uni_count = length(short_name), median = median(inc_sh_mark), mean = mean(inc_sh_mark))
-
-t2 <- formattable(t2)
-
-as.datatable(t2)
-
-```
-
-```{r}
-t2 <- merged_final %>% dplyr::filter(agencyId != 154506) %>% 
-  mutate(inc_sh_mark = 100*code_040_130_availableMeansEndYear/code_010_100_totalEndYear) %>% 
-  select(short_name,inc_sh_mark, family_profile) %>% group_by(family_profile) %>% summarise(
-    uni_count = length(short_name), 
- #   median = median(inc_sh_mark), 
-    mean = mean(inc_sh_mark)) 
-t2 <- t2 %>%   arrange(desc(mean))
-t3 <- t2
-colnames(t2)[2] <- "Кол-во вузов" 
-#colnames(t2)[3] <- "Медиана (в %)"
-colnames(t2)[3] <- "Среднее (в %)" 
-colnames(t2)[1] <- "Семейства вузов"
-########################################
-
-#knitr::kable(t2 , booktabs = T, digits = 2) %>%
-# kable_styling(full_width = F) 
-
-
-```
-
 #### Рис. 4. Доходы от платных услуг населению и фирмам по типам вузов {-}
 
 ```{r}
-ggplot(data=t3, aes(x=reorder(family_profile, mean), 
+r4 <- merged_final %>% dplyr::filter(agencyId != 154506) %>% 
+  mutate(inc_sh_mark = 100*code_040_130_availableMeansEndYear/code_010_100_totalEndYear) %>% 
+  select(short_name,inc_sh_mark, family_profile) %>% group_by(family_profile) %>% summarise(
+    uni_count = length(short_name), 
+ #  median = median(inc_sh_mark), 
+    mean = mean(inc_sh_mark)) 
+
+r4 %>% 
+ggplot(aes(x=reorder(family_profile, mean), 
                        y=mean, 
                        fill = family_profile)) +
   geom_bar(stat="identity")+ coord_flip() + 
@@ -1031,279 +330,45 @@ ggplot(data=t3, aes(x=reorder(family_profile, mean),
 
 ```
 
-```{r eval=FALSE}
-
-t2 <- merged_final %>% dplyr::filter(agencyId != 154506) %>% 
-  mutate(inc_sh_mark = 100*code_040_130_availableMeansEndYear/code_010_100_totalEndYear) %>% select(agencyId,  inc_sh_mark, family_profile) %>%
-  gather(key=agencyId, value=Value, family_profile) 
-t2 %>% 
-  ggplot(aes(inc_sh_mark, fill = Value)) +
-  geom_histogram(position = "identity", alpha = 0.7) +
-  facet_wrap(~Value, nrow = 3)  +
-  labs(
-    x = "Доходы от платных услуг (в % от общих доходов вуза)",
-    y = "Кол-во вузов",
-    fill = NULL
-  ) +
-  theme_bw() +
-  theme(legend.position = 'none' )
-
-```
-
-```{r eval=FALSE}
-t2 <- merged_final %>% dplyr::filter(agencyId != 154506) %>% 
-  mutate(inc_sh_mark = 100*code_040_130_availableMeansEndYear/code_010_100_totalEndYear) %>% 
-  select(short_name,inc_sh_mark, family_profile) 
-
-ggplot(t2) + geom_boxplot(aes(x = inc_sh_mark,
-                                         y = family_profile, 
-                                         fill = family_profile)) +
-  theme(axis.title.y=element_blank(),
-        legend.position = 'none' )
-```
-
-```{r eval=FALSE}
-options(scipen = 999)
-t2 <- merged_final %>% dplyr::filter(agencyId != 164804) %>% 
-  mutate(inc_sh_mark = 100*code_160_210_availableMeansEndYear/code_150_200_totalEndYear) %>% 
-  select(agencyId, short_name,inc_sh_mark, family_profile)
-
-t2 <- formattable(t2)
-
-as.datatable(t2)
-
-```
-
-```{r eval=FALSE}
-
-firstup <- function(x) {
-  substr(x, 1, 1) <- toupper(substr(x, 1, 1))
-  x
-}
-
-options(scipen = 999)
-t2 <- merged_final %>% dplyr::filter(agencyId != 164804) %>% 
-  mutate(inc_sh_mark = 100*code_160_210_availableMeansEndYear/code_150_200_totalEndYear) %>% 
-  select(short_name,inc_sh_mark) %>% arrange(desc(inc_sh_mark)) %>% top_n(10,inc_sh_mark)
-  #mutate(short_name = firstup(tolower(short_name)))
-
-colnames(t2)[1] <- "Вуз" 
-colnames(t2)[2] <- "Доходы от платных услуг, %" 
-
-knitr::kable(t2 , booktabs = T, digits = 2) %>%
- kable_styling(full_width = F) #%>% 
-#  row_spec(which(t2$family_profile2 > 8), background = "#e6e6ff")
-
-
-```
-
-```{r eval=FALSE}
-
-t2 <- merged_final %>% dplyr::filter(agencyId != 164804) %>% 
-  mutate(inc_sh_mark = 100*code_160_210_availableMeansEndYear/code_150_200_totalEndYear) %>% select(agencyId,  inc_sh_mark) %>%
-gather(key=agencyId, value=Value)  
-f <- t2 %>%   ggplot(aes(Value, fill = agencyId)) +
-  geom_histogram(position = "identity", alpha = 0.7) +
-  geom_vline(aes(xintercept = mean(Value)),col='red',size=0.6, linetype = 5)+
-  labs(
-    x = "Оплата труда за счет платных услуг (в % от общих расходов вуза)",
-    y = "Число вузов", 
-    fill = NULL
-  )  + theme_bw()+
-  theme(legend.position = 'none' )
-f+geom_text(aes(x=28, y=40,label='mean = 21%'), size=3.5)
-
-```
-
-```{r eval=FALSE}
-options(scipen = 999)
-t2 <- merged_final %>% dplyr::filter(agencyId != 164804) %>% 
-  mutate(inc_sh_mark = 100*code_160_210_availableMeansEndYear/code_150_200_totalEndYear) %>% 
-  select(short_name,inc_sh_mark, family_profile) %>% group_by(family_profile) %>% summarise(uni_count = length(short_name), median = median(inc_sh_mark), mean = mean(inc_sh_mark))
-
-t2 <- formattable(t2)
-
-as.datatable(t2)
-
-```
-
-```{r eval=FALSE}
-t2 <- merged_final %>% dplyr::filter(agencyId != 164804) %>% 
-  mutate(inc_sh_mark = 100*code_160_210_availableMeansEndYear/code_150_200_totalEndYear) %>% 
-  select(short_name,inc_sh_mark, family_profile) %>% group_by(family_profile) %>% summarise( 
-    mean = mean(inc_sh_mark),
-    median = median(inc_sh_mark),
-    uni_count = length(short_name)) 
-t2 <- t2 %>%   arrange(desc(mean))
-t3 <- t2
-colnames(t2)[4] <- "Кол-во вузов" 
-colnames(t2)[3] <- "Медиана (в %)"
-colnames(t2)[2] <- "Среднее (в %)" 
-colnames(t2)[1] <- "Семейства вузов"
-########################################
-
-knitr::kable(t2 , booktabs = T, digits = 2) %>%
- kable_styling(full_width = F) 
-
-
-```
-
-```{r eval=FALSE}
-ggplot(data=t3, aes(x=reorder(family_profile, mean), 
-                       y=mean, 
-                       fill = family_profile)) +
-  geom_bar(stat="identity")+ coord_flip() + 
-  scale_fill_manual(values = c("grey", "grey", "grey","red","grey", "grey", "grey","red","grey")) + geom_hline(yintercept=21, linetype="dashed")+
-  geom_text(aes(x=1, y=25,label='mean = 21%'), size=3.5) +
-  geom_text(aes(label=digits(mean,0)),hjust = 1.5, vjust=0.5, size=4)+
-  labs(
-    y = "Доходы от платных услуг (в % от общих доходов вуза)",
-    fill = NULL
-  ) +
-  theme_bw() +
-  theme(legend.position = 'none',
-        axis.title.y = element_blank()) 
-
-```
-
-```{r eval=FALSE}
-
-t2 <- merged_final %>% dplyr::filter(agencyId != 164804) %>% 
-  mutate(inc_sh_mark = 100*code_160_210_availableMeansEndYear/code_150_200_totalEndYear) %>% select(agencyId,  inc_sh_mark, family_profile) %>%
-  gather(key=agencyId, value=Value, family_profile) 
-t2 %>% 
-  ggplot(aes(inc_sh_mark, fill = Value)) +
-  geom_histogram(position = "identity", alpha = 0.7) +
-  facet_wrap(~Value, nrow = 3)  +
-  theme(legend.position = 'none' )
-
-```
-
-```{r eval=FALSE}
-t2 <- merged_final %>% dplyr::filter(agencyId != 164804) %>% 
-  mutate(inc_sh_mark = 100*code_160_210_availableMeansEndYear/code_150_200_totalEndYear) %>% 
-  select(short_name,inc_sh_mark, family_profile) 
-
-ggplot(t2) + geom_boxplot(aes(x = inc_sh_mark,
-                                         y = family_profile, 
-                                         fill = family_profile)) +
-  theme(axis.title.y=element_blank(),
-        legend.position = 'none' )
-```
-
-```{r eval=FALSE}
-monitoring_data_site <- read_excel("data/monitoring_data_site.xlsx")
-colnames(monitoring_data_site)
-regions <- monitoring_data_site %>% select(id, region_2017)
-write.csv(regions, "regions.csv", fileEncoding = "UTF-8")
-merged_final_2 <- left_join(merged_final, regions, by = c("id_monitoring"="id"))
-colnames(merged_final_2)
-
-```
 
 #### Таблица 5. Топ-10 регионов с самой большой долей доходов от оказания платных услуг населению и фирмам {-}
 
 ```{r}
-options(scipen = 999)
-t2 <- merged_final_2 %>% dplyr::filter(agencyId != 154506) %>% 
+t5 <- merged_final %>% dplyr::filter(agencyId != 154506) %>% 
   mutate(inc_sh_mark = 100*code_040_130_availableMeansEndYear/code_010_100_totalEndYear) %>% 
   select(short_name,inc_sh_mark, family_profile, region_2017) %>% 
   group_by(region_2017) %>% 
-  summarise(mean = mean(inc_sh_mark),mediana = median(inc_sh_mark), uni_count = length(short_name))
+  summarise(mean = mean(inc_sh_mark),mediana = median(inc_sh_mark), uni_count = length(short_name)) %>% arrange(desc(mean)) # %>% top_n(10, mean)
 
-t2 <- t2 %>%   arrange(desc(mean)) #%>% top_n(10, mean)
-colnames(t2)[4] <- "Кол-во вузов" 
-colnames(t2)[2] <- "Средняя доля доходов (в %)" 
-colnames(t2)[3] <- "Медиана (в %)" 
-colnames(t2)[1] <- "Регионы"
-########################################
+colnames(t5)[4] <- "Кол-во вузов" 
+colnames(t5)[2] <- "Средняя доля доходов (в %)" 
+colnames(t5)[3] <- "Медиана (в %)" 
+colnames(t5)[1] <- "Регионы"
 
-f <- datatable(t2)
+f <- datatable(t5)
 formatRound(f, columns=c(2:4), digits=0, interval = 0, mark = "")
-
 
 #knitr::kable(t2 , booktabs = T, digits = 3) %>%
  #kable_styling(full_width = F) 
-
 ```
 
-```{r eval=FALSE}
-t2 <- formattable(t2)
-
-as.datatable(t2)
-```
-
-```{r eval=FALSE}
-options(scipen = 999)
-t2 <- merged_final_2 %>% dplyr::filter(agencyId != 154506) %>% 
-  mutate(inc_sh_mark = 100*code_040_130_availableMeansEndYear/code_010_100_totalEndYear) %>% 
-  select(short_name,inc_sh_mark, family_profile, region_2017) %>% 
-  group_by(region_2017) %>% 
-  summarise(mean = mean(inc_sh_mark),mediana = median(inc_sh_mark), uni_count = length(short_name))
-
-t2 <- t2 %>%   arrange(desc(mean)) %>% top_n(-10, mean) %>%   arrange(mean) 
-colnames(t2)[4] <- "Кол-во вузов" 
-colnames(t2)[2] <- "Средняя доля доходов (в %)" 
-colnames(t2)[3] <- "Медиана (в %)" 
-colnames(t2)[1] <- "Регионы"
-########################################
-
-knitr::kable(t2 , booktabs = T, digits = 3) %>%
- kable_styling(full_width = F) 
-
-```
-
-```{r eval=FALSE}
-options(scipen = 999)
-t2 <- merged_final_2 %>% dplyr::filter(agencyId != 164804) %>% 
-  mutate(inc_sh_mark =  100*code_160_210_availableMeansEndYear/code_150_200_totalEndYear) %>% 
-  select(short_name,inc_sh_mark, family_profile, region_2017) %>% 
-  group_by(region_2017) %>% 
-  summarise(mean = mean(inc_sh_mark),mediana = median(inc_sh_mark), uni_count = length(short_name))
-
-t2 <- t2 %>%   arrange(desc(mean)) %>% top_n(10, mean)
-colnames(t2)[4] <- "Кол-во вузов" 
-colnames(t2)[2] <- "Средняя доля расходов (в %)" 
-colnames(t2)[3] <- "Медиана (в %)" 
-colnames(t2)[1] <- "Регионы"
-########################################
-
-knitr::kable(t2 , booktabs = T, digits = 3) %>%
- kable_styling(full_width = F) 
-
-```
-
-```{r eval=FALSE}
-options(scipen = 999)
-t2 <- merged_final_2 %>% dplyr::filter(agencyId != 164804) %>% 
-  mutate(inc_sh_mark = 100*code_160_210_availableMeansEndYear/code_150_200_totalEndYear) %>% 
-  select(short_name,inc_sh_mark, family_profile, region_2017) %>% 
-  group_by(region_2017) %>% 
-  summarise(mean = mean(inc_sh_mark),mediana = median(inc_sh_mark), uni_count = length(short_name))
-
-t2 <- t2 %>%   arrange(desc(mean)) %>% top_n(-10, mean) %>%   arrange(mean) 
-colnames(t2)[4] <- "Кол-во вузов" 
-colnames(t2)[2] <- "Средняя доля расходов (в %)" 
-colnames(t2)[3] <- "Медиана (в %)" 
-colnames(t2)[1] <- "Регионы"
-########################################
-
-knitr::kable(t2 , booktabs = T, digits = 3) %>%
- kable_styling(full_width = F) 
-
-```
 
 #### Рис. 5. Связь числа вузов в регионе и доли доходов от платных услуг в этих вузах (без Москвы и Спб) {-}
 
 ```{r}
-options(scipen = 999)
-t2 <- merged_final_2 %>% dplyr::filter(agencyId != 154506) %>% 
-  mutate(inc_sh_mark = 100*code_040_130_availableMeansEndYear/code_010_100_totalEndYear) %>% 
+
+r5 <- merged_final %>% dplyr::filter(agencyId != 154506) %>% 
+  mutate(
+    inc_sh_mark = 100*code_040_130_availableMeansEndYear/code_010_100_totalEndYear) %>% 
   select(short_name,inc_sh_mark, family_profile, region_2017) %>% 
   group_by(region_2017) %>% 
-  summarise(mean = mean(inc_sh_mark),mediana = median(inc_sh_mark), uni_count = length(short_name))
-t2 %>% filter(uni_count<20) %>% 
-ggplot() + geom_point(aes(x = mean, y = uni_count)) + geom_vline(xintercept=33, linetype="dashed", color = "red")+
+  summarise(
+    mean = mean(inc_sh_mark),
+    mediana = median(inc_sh_mark), 
+    uni_count = length(short_name))
+
+r5 %>% filter(uni_count<20) %>% 
+  ggplot() + geom_point(aes(x = mean, y = uni_count)) + geom_vline(xintercept=33, linetype="dashed", color = "red")+
   geom_text(aes(x=35, y=11,label='mean = 33%'), size=3.5) +
   labs(
     x = "Доходы от платных услуг (в % от общих доходов вуза)",
@@ -1314,56 +379,17 @@ ggplot() + geom_point(aes(x = mean, y = uni_count)) + geom_vline(xintercept=33, 
 
 ```
 
-```{r eval=FALSE}
-options(scipen = 999)
-t2 <- merged_final_2 %>% dplyr::filter(agencyId != 154506 & agencyId != 164804) %>% 
-  mutate(inc_sh_mark = 100*code_040_130_availableMeansEndYear/code_010_100_totalEndYear, 
-         inc_sh_mark2 = 100*code_160_210_availableMeansEndYear/code_150_200_totalEndYear) %>% 
-  select(short_name,inc_sh_mark, inc_sh_mark2) %>% 
- # group_by(region_2017) %>% 
-  summarise(uni_count = length(short_name), median = median(inc_sh_mark), mean = mean(inc_sh_mark), median2 = median(inc_sh_mark2), mean2 = mean(inc_sh_mark2))
-
-t2 <- formattable(t2)
-
-as.datatable(t2)
-
-```
-
-```{r eval=FALSE}
-options(scipen = 999)
-t2 <- merged_final %>% dplyr::filter(agencyId != 164804) %>% 
-  mutate(inc_sh_mark = 100*code_150_200_availableMeansEndYear/code_010_100_availableMeansEndYear) %>% 
-  select(agencyId, short_name,inc_sh_mark, family_profile)
-
-t2 <- formattable(t2)
-
-as.datatable(t2)
-
-
-```
-
-```{r eval=FALSE}
-options(scipen = 999)
-t2 <- merged_final %>% dplyr::filter(agencyId != 164804 & agencyId != 168032) %>% 
-  mutate(inc_sh_mark = 100*code_150_200_availableMeansEndYear/code_010_100_availableMeansEndYear) %>% 
-  select(agencyId, short_name,inc_sh_mark, family_profile) %>% 
-  summarise(uni_count = length(short_name), median = median(inc_sh_mark), mean = mean(inc_sh_mark))
-
-t2 <- formattable(t2)
-
-as.datatable(t2)
-
-
-```
-
 #### Рис. 6. Отношение расходов от приносящей доход деятельности к доходам от приносящей доход деятельности: гистограмма распределения {-}
 
 ```{r}
-t2 <- merged_final %>% dplyr::filter(agencyId != 164804 & agencyId != 168032) %>% 
-  mutate(inc_sh_mark = 100*code_150_200_availableMeansEndYear/code_010_100_availableMeansEndYear) %>% 
+r5 <- merged_final %>% 
+  dplyr::filter(agencyId != 164804 & agencyId != 168032) %>% 
+  mutate(
+    inc_sh_mark = 100*code_150_200_availableMeansEndYear/code_010_100_availableMeansEndYear) %>% 
   select(agencyId,inc_sh_mark) %>% 
-gather(key=agencyId, value=Value)  
-f <- t2 %>%   ggplot(aes(Value, fill = agencyId)) +
+  gather(key=agencyId, value=Value)  
+
+f <- r5 %>% ggplot(aes(Value, fill = agencyId)) +
   geom_histogram(position = "identity", alpha = 0.7) +
   geom_vline(aes(xintercept = mean(Value)),col='red',size=0.6, linetype = 5)+
   labs(
@@ -1372,14 +398,65 @@ f <- t2 %>%   ggplot(aes(Value, fill = agencyId)) +
     fill = NULL
   )  + theme_bw()+
   theme(legend.position = 'none' )
-f+geom_text(aes(x=120, y=115,label='mean = 98%'), size=3.5) #+
+f + geom_text(aes(x=120, y=115,label='mean = 98%'), size=3.5) #+
 #  geom_segment(aes(x = 50, y = 30, xend = 0, yend = 30),
  #                 arrow = arrow(length = unit(0.5, "cm")))
 ```
 
+#### Рис. 7. Гистограмма распределения расходов, финансируемых приносящей доход деятельностью {-}
+
 ```{r}
-options(digits = 4)  
-t2 <- merged_final_2 %>% 
+r7 <- merged_final %>% mutate(cos_sh_wage = 100*code_160_210_availableMeansEndYear/code_150_200_availableMeansEndYear,
+                      cos_sh_rab_usl = 100*code_170_220_availableMeansEndYear/code_150_200_availableMeansEndYear,
+                     cos_sh_ostalnoe =  
+                       100*(code_190_230_availableMeansEndYear+
+                              code_210_240_availableMeansEndYear+
+                              code_230_250_availableMeansEndYear+
+                              code_240_260_availableMeansEndYear+
+                              code_250_290_availableMeansEndYear+
+                              code_260_270_availableMeansEndYear)/code_150_200_availableMeansEndYear) %>% 
+  
+  select(2,cos_sh_wage, cos_sh_rab_usl,cos_sh_ostalnoe) %>% 
+  mutate(inc = cos_sh_wage+ cos_sh_rab_usl++cos_sh_ostalnoe) %>% 
+  arrange(desc(cos_sh_ostalnoe)) %>% dplyr::filter(cos_sh_wage != "NaN")
+
+#t5b <- formattable(t5b)
+#as.datatable(t5b)
+
+r7 <- r7 %>% 
+  #dplyr::filter(cos_sh_prochee > 0) %>% 
+  select(agencyId,cos_sh_wage, cos_sh_rab_usl,cos_sh_ostalnoe) %>% 
+  gather(key=agencyId, value=Value, cos_sh_wage, cos_sh_rab_usl,cos_sh_ostalnoe) %>% 
+  mutate(agencyId = case_when(agencyId == "cos_sh_wage" ~ "оплата труда",
+                              agencyId == "cos_sh_rab_usl" ~ "оплата работ (услуг)",
+                              TRUE   ~  "прочее")) 
+
+mu <- ddply(r7, "agencyId", summarise, grp.mean=mean(Value))
+
+r7 %>% 
+  ggplot(aes(Value, fill = agencyId)) +
+  geom_histogram(position = "identity", alpha = 0.7) +
+  geom_vline(data=mu, aes(xintercept=grp.mean, fill = agencyId),
+             linetype="dashed")+
+  scale_color_manual(values=c("#999999", "#E69F00", "#56B4E9"))+
+  scale_fill_manual(values=c("#999999", "#E69F00", "#56B4E9"))+
+  geom_text(aes(y=55, x=36,label='mean = 26%'), size=3.5, color = "#999999")+
+    geom_text(aes(y=45, x=67,label='mean = 57%'), size=3.5, color = "#E69F00")+
+      geom_text(aes(y=75, x=26,label='mean = 17%'), size=3.5, color = "#56B4E9")+
+   labs(
+    x = "Доли трех типов расходов (в %)",
+    y = "Число вузов", 
+    fill = NULL
+  ) +
+  theme_bw() 
+```
+
+Жопа
+
+#### Таблица. 7. Расходы на оплату труда, финансируемые за счет денег студентов и фирм {-}
+
+```{r}
+t_base <- merged_final %>% 
   dplyr::filter(agencyId != 183965 & agencyId != 164804) %>% 
   mutate(all_inc = code_010_100_availableMeansEndYear/1000000, 
          mark_inc = code_040_130_availableMeansEndYear/1000000, 
@@ -1404,76 +481,18 @@ t2 <- merged_final_2 %>%
          region_2017,
          ostat
     )
-
-#t2 <- formattable(t2)
-#as.datatable(t2)
-
-```
-
-
-#### Рис. 7. Гистограмма распределения расходов, финансируемых приносящей доход деятельностью {-}
-
-```{r}
-options(digits = 2)
-t5b <- df2 %>% mutate(cos_sh_wage = 100*code_160_210_availableMeansEndYear/code_150_200_availableMeansEndYear,
-                      cos_sh_rab_usl = 100*code_170_220_availableMeansEndYear/code_150_200_availableMeansEndYear,
-                     cos_sh_ostalnoe =  
-                       100*(code_190_230_availableMeansEndYear+
-                              code_210_240_availableMeansEndYear+
-                              code_230_250_availableMeansEndYear+
-                              code_240_260_availableMeansEndYear+
-                              code_250_290_availableMeansEndYear+
-                              code_260_270_availableMeansEndYear)/code_150_200_availableMeansEndYear) %>% 
-  
-  select(2,cos_sh_wage, cos_sh_rab_usl,cos_sh_ostalnoe) %>% 
-  mutate(inc = cos_sh_wage+ cos_sh_rab_usl++cos_sh_ostalnoe) %>% 
-  arrange(desc(cos_sh_ostalnoe)) %>% dplyr::filter(cos_sh_wage != "NaN")
-
-#t5b <- formattable(t5b)
-#as.datatable(t5b)
+t_base %>% select(short_name, all_inc, mark_inc, wage, all_w, dang, dang_sh) %>%  datatable ()
 
 ```
 
 ```{r}
-
-t5b_1 <- t5b %>% 
-  #dplyr::filter(cos_sh_prochee > 0) %>% 
-  select(agencyId,cos_sh_wage, cos_sh_rab_usl,cos_sh_ostalnoe) %>% 
-  gather(key=agencyId, value=Value, cos_sh_wage, cos_sh_rab_usl,cos_sh_ostalnoe) %>% 
-  mutate(agencyId = case_when(agencyId == "cos_sh_wage" ~ "оплата труда",
-                              agencyId == "cos_sh_rab_usl" ~ "оплата работ (услуг)",
-                              TRUE   ~  "прочее")) 
-mu <- ddply(t5b_1, "agencyId", summarise, grp.mean=mean(Value))
-
-
-t5b_1 %>% 
-  ggplot(aes(Value, fill = agencyId)) +
-  geom_histogram(position = "identity", alpha = 0.7) +
-  geom_vline(data=mu, aes(xintercept=grp.mean, fill = agencyId),
-             linetype="dashed")+
-  scale_color_manual(values=c("#999999", "#E69F00", "#56B4E9"))+
-  scale_fill_manual(values=c("#999999", "#E69F00", "#56B4E9"))+
-  geom_text(aes(y=55, x=36,label='mean = 26%'), size=3.5, color = "#999999")+
-    geom_text(aes(y=45, x=67,label='mean = 57%'), size=3.5, color = "#E69F00")+
-      geom_text(aes(y=75, x=26,label='mean = 17%'), size=3.5, color = "#56B4E9")+
-   labs(
-    x = "Доли трех типов расходов (в %)",
-    y = "Число вузов", 
-    fill = NULL
-  ) +
-  theme_bw() 
-```
-
-#### Таблица. 7. Расходы на оплату труда, финансируемые за счет денег студентов и фирм {-}
-
-```{r}
-t3 <- t2 %>% 
+t7 <- t_base %>% 
   select(short_name, all_w, dang, dang_sh) %>% arrange(desc(dang_sh))
-colnames(t3)[4] <- "(в % от общих)" 
-colnames(t3)[3] <- "(в млн. руб)" 
+colnames(t7)[4] <- "(в % от общих)" 
+colnames(t7)[3] <- "(в млн. руб)" 
 #colnames(t3)[3] <- "Расходы на оплату труда только за счет присносящ. дох. деятельн." 
-colnames(t3)[2] <- "Общие  (в млн. руб)" 
-colnames(t3)[1] <- "Вуз"
+colnames(t7)[2] <- "Общие  (в млн. руб)" 
+colnames(t7)[1] <- "Вуз"
 
 #knitr::kable(t3 , booktabs = T, digits = 0) %>%
 # kable_styling(full_width = F, c("bordered")) %>% 
@@ -1483,7 +502,6 @@ colnames(t3)[1] <- "Вуз"
 #  column_spec(2, width = "8em") %>% 
 #  add_header_above(c(" ", " ", "Финансируемые за счет студентов и фирм" = 2)) %>%
 #  add_header_above(c(" ", "Расходы на оплату труда" = 3))
-
 
 sketch = htmltools::withTags(table(
   class = 'display',
@@ -1507,130 +525,25 @@ sketch = htmltools::withTags(table(
   )
 ))
 
-f <- datatable(t3, rownames = FALSE, container = sketch)
+f <- datatable(t7, rownames = FALSE, container = sketch)
 formatRound(f, columns=c(2:4), digits=0, interval = 0,
   mark = "")
 
-```
-
-```{r eval=FALSE}
-t2 %>% select(agencyId, dang_sh) %>% 
-gather(key=agencyId, value=Value)  %>% 
-  ggplot(aes(Value, fill = agencyId)) +
-  geom_histogram(position = "identity", alpha = 0.7) +
-  geom_vline(aes(xintercept = mean(Value)),col='red',size=0.6, linetype = 5)+
-  geom_vline(aes(xintercept = median(Value)),col='blue',size=0.6, linetype = 5)+
-  labs(
-    x = "Отсношение расходов от принос. доход деят. к доходам от принос. доход деят.",
-    y = "Число вузов", 
-    fill = NULL
-  )  + theme_bw()+
-  theme(legend.position = 'none' )
-
-```
-
-```{r eval=FALSE}
-v <- t2 %>% 
-ggplot(aes(all_cost, dang_sh)) + 
-  #geom_density_2d() +
-  geom_point(aes(colour = family_profile),size = 2) +
-  #geom_mark_hull(aes(label=family_profile,fill=family_profile),show.legend = FALSE) +
-#scale_y_continuous(trans='log10') +
-#geom_smooth(method = "lm", se = FALSE, size = 0.7) +
-  geom_mark_ellipse(
-    aes(filter = dang_sh > 65)) +
-  labs(
-    y = "Доля расходов на оплату труда, финансируемая из денег студентов и фирм (%)",
-    x = "Доля расходов на оплату труда в общих расходах (%)", 
-    fill = NULL)  + 
-  theme_bw()+
-  theme(legend.position = 'right',
-        legend.title = element_blank()) #+
-  #geom_point(x = 62, y = 31, colour = "red", size = 5)
-
-v
-
-```
-
-```{r}
-t3 <- t2 %>% 
-  mutate(capital = case_when(region_2017 == "г.Москва" | region_2017 == "г.Санкт-Петербург" ~ "Столичные",
-                                         TRUE   ~  "Региональные"))
-
-```
-
-```{r eval=FALSE}
-t3 %>% 
-ggplot(aes(all_cost, dang_sh, colour = family_profile)) + geom_point(size = 2) +
-#scale_y_continuous(trans='log10') +
-#geom_smooth(method = "lm", se = FALSE, size = 0.7) +
-  facet_wrap(~family_profile, nrow = 3)  +
-  labs(
-    y = "Доля расходов, находящихся под угрозой в расходах на оплату труда ",
-    x = "Доля расходов на оплату труда в общих расходах (%)", 
-    fill = NULL)  + 
-  theme_bw()+
-  theme(legend.position = 'none',
-        legend.title = element_blank()) +
-  geom_point(x = 62, y = 31, colour = "red", size = 2)
-
-
-```
-
-```{r eval=FALSE}
-t2 <- t2 %>% 
-  summarise(uni_count = length(all_cost), median = median(all_cost), mean = mean(all_cost),
-            uni_count2 = length(dang_sh), median2 = median(dang_sh), mean2 = mean(dang_sh))
-
-t2 <- formattable(t2)
-
-as.datatable(t2)
-```
-
-```{r eval=FALSE}
-t3 %>% 
-ggplot(aes(all_cost, dang_sh, colour = capital)) + geom_point(size = 2) +
-#scale_y_continuous(trans='log10') +
-#geom_smooth(method = "lm", se = FALSE, size = 0.7) +
- # labs(
-  #  y = "Деньги из бюджетов всех уровней в рублях (логарифм)",
-  #  x = "Доходы от платных услуг в % от общих доходов вуза", 
-  #  fill = NULL)  + 
-  theme_bw()+
-  theme(legend.position = 'bottom',
-        legend.title = element_blank())
-```
-
-```{r eval=FALSE}
-t2 %>% 
-  mutate(sh = 100*dang/ostat) %>% 
-  select(agencyId,sh) %>% 
-  gather(key=agencyId, value=Value)  %>% 
-  ggplot(aes(Value, fill = agencyId)) +
-  geom_histogram(position = "identity", alpha = 0.7) +
-  geom_vline(aes(xintercept = mean(Value)),col='red',size=0.6, linetype = 5)+
-  geom_vline(aes(xintercept = median(Value)),col='blue',size=0.6, linetype = 5)+
-  labs(
-    x = "Отсношение расходов от принос. доход деят. к доходам от принос. доход деят.",
-    y = "Число вузов", 
-    fill = NULL
-  )  + theme_bw()+
-  theme(legend.position = 'none' )
 ```
 
 #### Таблица. 8. Топ вузов с самыми большими расходами на оплату труда из денег студентов и фирм при самой маленькой величине всех остальных расходов {-}
 
 ```{r}
 
-t2_i <- t2 %>% 
-  mutate(sh = 100*dang/ostat) %>% 
+t8 <- t_base %>% 
+  mutate(sh = 100*ostat/dang) %>% 
   select(short_name, dang, ostat, sh) %>% #filter(sh>=100) %>% 
-  arrange(desc(sh))
+  arrange(sh)
 
-colnames(t2_i)[1] <- "Вуз" 
-colnames(t2_i)[3] <- "Все остальные расходы из всех источников кроме расходов на оплату труда (млн руб) [3]"
-colnames(t2_i)[2] <- "Оплата труда, финансируемая студентами и фирмами (млн руб) [2]"
-colnames(t2_i)[4] <- "Доля [2] к [3] (%)"
+colnames(t8)[1] <- "Вуз" 
+colnames(t8)[3] <- "Все остальные расходы из всех источников кроме расходов на оплату труда (млн руб) [3]"
+colnames(t8)[2] <- "Оплата труда, финансируемая студентами и фирмами (млн руб) [2]"
+colnames(t8)[4] <- "Доля [3] к [2] (%)"
  
 #kable(t2_i, booktabs = T, digits = 0) %>%
 #  kable_styling(full_width = F, c("bordered")) %>% 
@@ -1639,88 +552,16 @@ colnames(t2_i)[4] <- "Доля [2] к [3] (%)"
  # column_spec(3, width = "11em") %>% 
 #  column_spec(4, width = "5em", background = "#f2e6ff") 
 
-f <- datatable(t2_i)
+f <- datatable(t8)
 formatRound(f, columns=c(2:4), digits=0, interval = 0,
   mark = "")
 
 ```
 
-```{r eval=FALSE}
-options(digits = 2)
-t5a <- df2 %>% mutate(cos_sh_wage = 100*code_160_210_totalEndYear/code_150_200_totalEndYear,
-                      cos_sh_rab_usl = 100*code_170_220_totalEndYear/code_150_200_totalEndYear,
-                     cos_sh_ostalnoe =  
-                       100*(code_190_230_totalEndYear+
-                              code_210_240_totalEndYear+
-                              code_230_250_totalEndYear+
-                              code_240_260_totalEndYear+
-                              code_250_290_totalEndYear+
-                              code_260_270_totalEndYear)/code_150_200_totalEndYear) %>% 
-  
-  select(2,cos_sh_wage, cos_sh_rab_usl,cos_sh_ostalnoe) %>% 
-  mutate(inc = cos_sh_wage+ cos_sh_rab_usl++cos_sh_ostalnoe) %>% 
-  arrange(desc(cos_sh_ostalnoe)) %>% dplyr::filter(agencyId != 164804)
-
-
-t5a <- formattable(t5a)
-as.datatable(t5a)
-
-```
-
-```{r eval=FALSE}
-
-J <- basicStats(t5b)
-J <- data.frame(t(J))
-J2 <- J
-J <- formattable(J, digits = 0) %>% select(1:8)
-J
-```
-
-```{r eval=FALSE}
-
-J <- basicStats(t5a)
-J <- data.frame(t(J))
-J1 <- J
-J <- formattable(J, digits = 0) %>% select(1:8)
-J
-```
-
-```{r eval=FALSE}
-t5a %>% 
-  #dplyr::filter(cos_sh_prochee > 0) %>% 
-  select(agencyId,cos_sh_wage, cos_sh_rab_usl,cos_sh_ostalnoe) %>% 
-  gather(key=agencyId, value=Value, cos_sh_wage, cos_sh_rab_usl,cos_sh_ostalnoe) %>% 
-  ggplot(aes(Value, fill = agencyId)) +
-  geom_histogram(position = "identity", alpha = 0.7) +
-  labs(
-    x = "Доли наших пяти типов расходов (в %)",
-    y = "Число вузов", 
-    fill = NULL
-  )
-```
-
-```{r eval= FALSE}
-J1 <- data.frame(`оплата_труда` = c(62, 57),
-                `оплата_работ_услуг`= c(15, 26),
-                 `прочее`	= c(23, 17),
-                 type = c("Финансируемые \n за счет всех \n источников", "Финансируемые \n только за счет приносящей \n доход деятености"))
-
-J1 %>% dplyr::filter(type == "Финансируемые \n только за счет приносящей \n доход деятености") %>% 
-gather(key=Type, value=Value, `оплата_труда`,`оплата_работ_услуг`, `прочее`) %>% 
-  ggplot(aes(type, Value, fill = Type)) +
-  geom_col(position = "dodge") +  
-  geom_text(aes(label=digits(Value,Type)),hjust = 1.5, vjust=0.5, size=4)+
-  labs(
-    x = "Расходы",
-    y = "Доля в общих расходах (%)", 
-    fill = NULL
-  )  + theme_bw()
-```
-
 #### Рис. 9. Расходы на оплату труда из денег студентов и фирм к величине всех остальных расходов: семейства {-}
 
 ```{r}
-t2 %>% 
+t_base %>% 
  #dplyr::filter(family_profile == "Социальные и гуманитарные") %>%
   dplyr::filter(ostat<2000 & dang<2500) %>%
 ggplot(aes(ostat, dang, colour = family_profile)) + geom_point(size = 2) +
@@ -1734,7 +575,7 @@ geom_segment(aes(x = 0, y = 0, xend = 2000, yend = 2000), linetype="dashed",
     y = "Оплата труда, финансируемая студентами и фирмами (млн руб)",
     x = "Все остальные расходы из всех источников кроме расходов на оплату труда (млн руб)",
     fill = NULL)  + 
-  theme_bw()+
+  theme_bw() +
   theme(legend.position = 'none',
         legend.title = element_blank())
 ```

@@ -14,3 +14,4 @@ github-repo: rstudio/bookdown-demo
 # Графики и таблицы из гугл дока {-}
 
 
+ВСЕМ ПРИВЕТИКИ
